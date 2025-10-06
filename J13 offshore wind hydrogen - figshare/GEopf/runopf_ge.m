@@ -1,5 +1,7 @@
 function [solution, information] = runopf_ge(mpc)
-% 20220810: 纯电力天然气的稳态opf，考虑燃气机组和ptg，考虑切负荷
+% 20220810: steady state opf of power and gas networks, considering gas
+% fired power plants and ptg, consider load curtailment
+% 纯电力天然气的稳态opf，考虑燃气机组和ptg，考虑切负荷
 %% define named indices into data matrices
 [PQ, PV, REF, NONE, BUS_I, BUS_TYPE, PD, QD, GS, BS, BUS_AREA, VM, ...
     VA, BASE_KV, ZONE, VMAX, VMIN, LAM_P, LAM_Q, MU_VMAX, MU_VMIN] = idx_bus;

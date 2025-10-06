@@ -81,7 +81,7 @@ gamma = mpc.Gline(:,9);
 LCg = 0;
 % drcc vars
 u_PGs = sdpvar(nGs,1); v_PGs = sdpvar(nGs,1); 
-phi_PGs = sdpvar(nGs,1); % affine mapping factor, 假设我们用所有风机误差的总和来作为调节依据，这就简化了，其他也有文章这么做的 
+phi_PGs = sdpvar(nGs,1); % affine mapping factor
 phi_Qd = sdpvar(nGd,nGasType);
 phi_gasComposition = sdpvar(nGb,nGasType);
 phi_Qgpp = sdpvar(nGpp, nGasType);
@@ -90,7 +90,7 @@ phi_Pptg = sdpvar(nPTG,1);
 u_Pptg = sdpvar(nPTG,1); v_Pptg = sdpvar(nPTG,1); 
 phi_gasFlow = sdpvar(nGl,nGasType);
 phi_Pg = sdpvar(ng,1); u_Pg = sdpvar(ng,1); v_Pg = sdpvar(ng,1);
-phi_Va = sdpvar(nb,1); u_Va = sdpvar(nl,1); v_Va = sdpvar(nl,1); % 这里的u,v的维度应该不是变量的维度，而是参与的约束的维度，其他的只是刚好变量和约束的维度一样
+phi_Va = sdpvar(nb,1); u_Va = sdpvar(nl,1); v_Va = sdpvar(nl,1);
 phi_Prs = sdpvar(nGb,1); u_Prs = sdpvar(nGb,1); v_Prs = sdpvar(nGb,1);
 phi_windCapacity = sdpvar(nOWF,1);
 %% bounds
@@ -159,7 +159,7 @@ nodalGasFlowBalanceCons = [
 
 % ptg
 % QptgMax_hydrogen = QptgMax_hydrogen * 1000;
-% eta.methanation = 1e-4; % 先别制备甲烷了试试
+% eta.methanation = 1e-4; 
 PTGcons_drcc = [
     ( Qptg(:,1) * 1e6/24/3600 *GCV.CH4 / eta.methanation + Qptg(:,2) * 1e6/24/3600 * GCV.hy ...
         ) /1e6 == Pptg * baseMVA / eta.electrolysis; % w
@@ -188,19 +188,18 @@ GPPcons_drcc = [
     gasComposition(iGppGb,:) .* repmat(sum(phi_Qgpp,2),[1,nGasType]) + phi_gasComposition(iGppGb,:) .* repmat(sum(Qgpp,2),[1,nGasType]) == phi_Qgpp;
     phi_gasComposition(iGppGb,:) .* repmat(sum(phi_Qgpp,2),[1,nGasType]) == 0;
     sigma_Qgpp >= 0;
-    Pgpp * baseMVA == Qgpp/24/3600 * GCVall'*eta.GFU; %Mm3对应MW
+    Pgpp * baseMVA == Qgpp/24/3600 * GCVall'*eta.GFU; %Mm3 - MW
     phi_Pgpp == phi_Qgpp/24/3600 * GCVall'*eta.GFU; 
     Qgpp >= 0;
     ]:'GPPcons';
 GPPcons = [
     gasComposition(iGppGb,:) .* repmat(sum(Qgpp,2),[1,nGasType]) - Qgpp == 0;
     sigma_Qgpp >= 0;
-    Pgpp * baseMVA == Qgpp/24/3600 * GCVall'*eta.GFU; %Mm3对应MW
+    Pgpp * baseMVA == Qgpp/24/3600 * GCVall'*eta.GFU; 
     Qgpp >= 0;
     ]:'GPPcons';
 
 % electricity flow
-% 是不是DRCC里面风电就不能给上下限了？
 Pg_nonwind = Pg; Pg_nonwind(OWFindexSet) = [];
 Pgmax_nonwind = Pgmax; Pgmax_nonwind(OWFindexSet) = [];
 Pgmin_nonwind = Pgmin; Pgmin_nonwind(OWFindexSet) = [];
@@ -224,12 +223,12 @@ electricityCons_drcc = [
     Pg_wind + sqrt((1-epsilon)/epsilon) * sigma * phi_windCapacity .^2 <= Pgmax_wind;
     Pg_wind >= 0;
 
-    Va(refs) == 0; % 除了slackbus外，其他相角都没约束。但是一些solver在处理inf的上下限的时候有问题
+    Va(refs) == 0; 
     ]:'electricityCons';
 electricityCons = [
     - upf <= Bf(il,:)*Va <= upf;
     Pgmin <= Pg <= Pgmax;
-    Va(refs) == 0; % 除了slackbus外，其他相角都没约束。但是一些solver在处理inf的上下限的时候有问题
+    Va(refs) == 0; 
     ]:'electricityCons';
 
 electricityBalanceCons_drcc = [...
@@ -244,7 +243,7 @@ electricityBalanceCons = [...
 GCV_nodal = gasComposition * GCVall';
 S_nodal = gasComposition * Mall' / M.air;
 sqrtS = 0.5 * (S_nodal/sqrt(S_ng) + sqrt(S_ng));
-WI_nodal = GCV_nodal ./ sqrtS; % 如果不能自动转化，那就手动化一下
+WI_nodal = GCV_nodal ./ sqrtS; 
 FSnodal = gasComposition * FSall';
 if isempty(hymax)
     gasSecurityCons_drcc = [
@@ -323,7 +322,7 @@ gasCompositionCons_drcc = [
         + phi_gasComposition .* repmat(sum(nodalGasInjectionForEachComp,2),[1,nGasType]) - phi_nodalGasInjectionForEachComp == 0;
         phi_gasComposition .* repmat(sum(phi_nodalGasInjectionForEachComp,2),[1,nGasType]) == 0; %?
     (repmat((1+gamma),[1,nGasType]).*gasComposition(mpc.Gline(:,1),:) + repmat((1-gamma),[1,nGasType]).*gasComposition(mpc.Gline(:,2),:))/2 .* repmat(gasFlow_sum,[1,nGasType]) - gasFlow == 0;
-% xxx 这里还缺一条
+% xxx 
     sigma_x >= 0;
 %     sum(gasComposition,2) == 1;
 %     0 <= gasComposition <= 1;
@@ -369,7 +368,7 @@ constraints = [
 objfcn = obj_operatingCost(Pg,PGs,LCg,Qptg, mpc,CDF) ...
     +  1*alpha_PHI * sum(sum(sigma_PHI)) + 10000* alpha_x * sum(sum(sigma_x)) ...
     + alpha_Qd * 100 * (sum(sum(sigma_Qd)) + sum(sum(sigma_Qgpp)) + sum(sum(sigma_Gf)));
-% 要get dual，必须先设置好，而且把约束用cone函数写
+
 options = sdpsettings('verbose',2,'solver','gurobi', 'debug',1);
 % options.ipopt.tol = 1e-4;
 options.ipopt.max_iter = 30000;

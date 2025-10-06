@@ -81,7 +81,7 @@ gamma = mpc.Gline(:,9);
 LCg = 0;
 % drcc vars
 u_PGs = sdpvar(nGs,1); v_PGs = sdpvar(nGs,1); 
-phi_PGs = sdpvar(nGs,1); % affine mapping factor, 假设我们用所有风机误差的总和来作为调节依据，这就简化了，其他也有文章这么做的 
+phi_PGs = sdpvar(nGs,1); % affine mapping factor
 phi_Qd = sdpvar(nGd,nGasType);
 phi_gasComposition = sdpvar(nGb,nGasType);
 phi_Qgpp = sdpvar(nGpp, nGasType);
@@ -90,7 +90,7 @@ phi_Pptg = sdpvar(nPTG,1);
 u_Pptg = sdpvar(nPTG,1); v_Pptg = sdpvar(nPTG,1); 
 phi_gasFlow = sdpvar(nGl,nGasType);
 phi_Pg = sdpvar(ng,1); u_Pg = sdpvar(ng,1); v_Pg = sdpvar(ng,1);
-phi_Va = sdpvar(nb,1); u_Va = sdpvar(nl,1); v_Va = sdpvar(nl,1); % 这里的u,v的维度应该不是变量的维度，而是参与的约束的维度，其他的只是刚好变量和约束的维度一样
+phi_Va = sdpvar(nb,1); u_Va = sdpvar(nl,1); v_Va = sdpvar(nl,1); 
 phi_Prs = sdpvar(nGb,1); u_Prs = sdpvar(nGb,1); v_Prs = sdpvar(nGb,1);
 phi_windCapacity = sdpvar(nOWF,1);
 %% bounds
@@ -117,7 +117,6 @@ newC = mpc.Gline(:,3);
 sigma = sigma/baseMVA;
 mu = mu/baseMVA;
 % electricity flow
-% 是不是DRCC里面风电就不能给上下限了？
 Pg_nonwind = Pg; Pg_nonwind(OWFindexSet) = [];
 Pgmax_nonwind = Pgmax; Pgmax_nonwind(OWFindexSet) = [];
 Pgmin_nonwind = Pgmin; Pgmin_nonwind(OWFindexSet) = [];
@@ -141,7 +140,7 @@ electricityCons_drcc = [
     Pg_wind + sqrt((1-epsilon)/epsilon) * sigma * phi_windCapacity .^2 <= Pgmax_wind;
     Pg_wind >= 0;
 
-    Va(refs) == 0; % 除了slackbus外，其他相角都没约束。但是一些solver在处理inf的上下限的时候有问题
+    Va(refs) == 0; 
     ]:'electricityCons';
 
 electricityBalanceCons = [...
@@ -155,7 +154,7 @@ constraints = [
     ];
 %% solve the problem
 objfcn = obj_operatingCost(Pg,0,0,0, mpc,CDF);
-% 要get dual，必须先设置好，而且把约束用cone函数写
+
 options = sdpsettings('verbose',2,'solver','mosek', 'debug',1);
 % options.ipopt.tol = 1e-4;
 options.ipopt.max_iter = 30000;

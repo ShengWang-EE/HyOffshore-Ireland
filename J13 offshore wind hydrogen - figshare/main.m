@@ -26,7 +26,7 @@ fileNameList = dir('.\wind data\');
 windMatrix.speed = sqrt(windMatrix.ULML.^2+windMatrix.VLML.^2);             % calculate wind speed from raw data
 windMatrix.speedHist = reshape(windMatrix.speed,[size(windMatrix.speed,1)*size(windMatrix.speed,2),1]);
 [windTurbine] = windTurbinePara();                                          % load wind turbine parameters
-totalWindCapacity1st = 5000; % 5GW                                    % set the short-term offshore wind capacity of ireland as 5 GW
+totalWindCapacity1st = 5000; % 5GW                                          % set the short-term offshore wind capacity of ireland as 5 GW
 nWindTurbineApproved = totalWindCapacity1st / windTurbine.ratedPower;       % numbers of wind turbines in short-term
 
 % get the geographycal locations of OWFs
