@@ -11,7 +11,12 @@ end
 fileNameList(deleteLine) = [];
 for i = 1:length(fileNameList)
     fileName = fileNameList(i).name;
-    fileInfo = ncinfo(fileName);
+    if isfield(fileNameList, 'folder')
+        filePath = fullfile(fileNameList(i).folder, fileName);
+    else
+        filePath = fileName;
+    end
+    ncinfo(filePath);
     % get date
     fileNameLength = length(fileName);
     for j = 1:fileNameLength-1
@@ -26,8 +31,8 @@ for i = 1:length(fileNameList)
     iday = daysact(datetime(2012,1,1), datetime(year1,month1,day1));
     numDays = daysact(datetime(2012,1,1), datetime(2022,12,31));
     islot.begin = iday*24+1; islot.end = (iday+1)*24;
-    lon = ncread(fileName, 'lon'); lat = ncread(fileName, 'lat');
-    ULML = ncread(fileName, 'ULML'); VLML = ncread(fileName, 'VLML');
+    lon = ncread(filePath, 'lon'); lat = ncread(filePath, 'lat');
+    ULML = ncread(filePath, 'ULML'); VLML = ncread(filePath, 'VLML');
     if i == 1
         windVelocity = cell(length(lon), length(lat));
         for ilon = 1:length(lon)

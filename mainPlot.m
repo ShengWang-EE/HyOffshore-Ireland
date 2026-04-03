@@ -1,7 +1,11 @@
 %% accomadation
-data2030 = readtable('Ireland future gas demand.xlsx','Sheet','results','Range','A29:H53');
-data2040 = readtable('Ireland future gas demand.xlsx','Sheet','results','Range','K29:R53');
-data2050 = readtable('Ireland future gas demand.xlsx','Sheet','results','Range','U29:AB53');
+if ~exist(projectPath('figs'), 'dir')
+    mkdir(projectPath('figs'));
+end
+
+data2030 = readtable(projectPath('data','inputs','system','Ireland future gas demand.xlsx'),'Sheet','results','Range','A29:H53');
+data2040 = readtable(projectPath('data','inputs','system','Ireland future gas demand.xlsx'),'Sheet','results','Range','K29:R53');
+data2050 = readtable(projectPath('data','inputs','system','Ireland future gas demand.xlsx'),'Sheet','results','Range','U29:AB53');
 data2030.Generation = data2030.Generation/1e3;data2030.RemainningCapacity = data2030.RemainningCapacity/1e3;
 data2040.Generation = data2040.Generation/1e3;data2040.RemainningCapacity = data2040.RemainningCapacity/1e3;
 data2050.Generation = data2050.Generation/1e3;data2050.RemainningCapacity = data2050.RemainningCapacity/1e3;
@@ -120,7 +124,7 @@ xlabel('Time (hour)');
 text(0.00, -0.18, '(c)', 'Units', 'normalized', 'VerticalAlignment', 'top','FontWeight','bold');
 
 set(fig, 'Position', [100, 100, 550, 800]);  % 同样的参数
-exportgraphics(gcf, 'figs/fig owf accomadation.pdf', 'ContentType', 'vector');
+exportgraphics(gcf, projectPath('figs','fig owf accomadation.pdf'), 'ContentType', 'vector');
 %% power demand
 clc
 clear
@@ -149,7 +153,7 @@ plot(futureYear,futureDemand,'--');
 set(fig, 'Position', [100, 100, 600, 200]);  % 同样的参数
 xlabel('Year'); xlim([2022,2050]);
 ylabel('Peak electricity demand (GW)')
-exportgraphics(gcf, 'figs/fig power demand forecast.pdf', 'ContentType', 'vector');
+exportgraphics(gcf, projectPath('figs','fig power demand forecast.pdf'), 'ContentType', 'vector');
 %%
 clear
 clc
@@ -358,7 +362,7 @@ lgd = legend({'Electricity demand curve','Gas demand curve'});
 lgd.Location = 'southeast';
 set(fig, 'Position', [100, 100, 600, 200]);  % 同样的参数
 
-exportgraphics(gcf, 'figs/fig demand curve.pdf', 'ContentType', 'vector');
+exportgraphics(gcf, projectPath('figs','fig demand curve.pdf'), 'ContentType', 'vector');
 %% demand
 clear
 clc
@@ -626,14 +630,14 @@ lgd.Location = 'southeast';
 
 text(0, -0.15, '(c)', 'Units', 'normalized', 'VerticalAlignment', 'top','FontWeight','bold');
 % set(fig, 'Position', [100, 100, 600, 300]);  % 同样的参数
-exportgraphics(gcf, 'fig future energy demand.pdf', 'ContentType', 'vector');
+exportgraphics(gcf, projectPath('figs','fig future energy demand.pdf'), 'ContentType', 'vector');
 
 %% accomadation
 clear
 clc
-data2030 = readtable('Ireland future gas demand.xlsx','Sheet','results','Range','A29:H53');
-data2040 = readtable('Ireland future gas demand.xlsx','Sheet','results','Range','K29:R53');
-data2050 = readtable('Ireland future gas demand.xlsx','Sheet','results','Range','U29:AB53');
+data2030 = readtable(projectPath('data','inputs','system','Ireland future gas demand.xlsx'),'Sheet','results','Range','A29:H53');
+data2040 = readtable(projectPath('data','inputs','system','Ireland future gas demand.xlsx'),'Sheet','results','Range','K29:R53');
+data2050 = readtable(projectPath('data','inputs','system','Ireland future gas demand.xlsx'),'Sheet','results','Range','U29:AB53');
 data2030.Generation = data2030.Generation/1e3;data2030.RemainningCapacity = data2030.RemainningCapacity/1e3;
 data2040.Generation = data2040.Generation/1e3;data2040.RemainningCapacity = data2040.RemainningCapacity/1e3;
 data2050.Generation = data2050.Generation/1e3;data2050.RemainningCapacity = data2050.RemainningCapacity/1e3;
@@ -722,7 +726,7 @@ text(0, -0.18, '(b)', 'Units', 'normalized', 'VerticalAlignment', 'top','FontWei
 
 
 set(fig, 'Position', [100, 100, 550, 400]);  % 同样的参数
-exportgraphics(gcf, 'fig owf accomadation2.pdf', 'ContentType', 'vector');
+exportgraphics(gcf, projectPath('figs','fig owf accomadation2.pdf'), 'ContentType', 'vector');
 
 %% ====================== response R2 ================================
 %% 
@@ -761,7 +765,7 @@ ytips2 = h(2).YEndPoints;
 labels2 = string(num2str(h(2).YData','%.2f'));
 text(xtips2, ytips2, labels2, 'HorizontalAlignment','center', 'VerticalAlignment','bottom');
 
-exportgraphics(gcf, 'figs/fig constraint violation probability.pdf', 'ContentType', 'vector');
+exportgraphics(gcf, projectPath('figs','fig constraint violation probability.pdf'), 'ContentType', 'vector');
 
 %% cost
 data = [
@@ -789,7 +793,7 @@ legend('M3: Wassertein-distance based DRCC', 'M5: Moment based DRCC', 'Location'
 grid on;
 
 
-exportgraphics(gcf, 'figs/fig operating costs.pdf', 'ContentType', 'vector');
+exportgraphics(gcf, projectPath('figs','fig operating costs.pdf'), 'ContentType', 'vector');
 %%
 % ================== 合成大图（上下排列） ==================
 figure('Position',[100 100 600 600]);  % 竖排更高一些
@@ -856,7 +860,7 @@ grid on;
 % 子图 (b) 标签
 text(-0.02, -0.15, '(b)', 'Units','normalized', 'FontSize', 10, 'FontWeight','bold');
 
-exportgraphics(gcf, 'figs/fig_combined_DRCC.pdf', ...
+exportgraphics(gcf, projectPath('figs','fig_combined_DRCC.pdf'), ...
     'ContentType','vector', 'BackgroundColor','none');
 %% convergence
 % Data
@@ -887,7 +891,7 @@ legend({'Total cost', 'Gas flow', 'Gas composition', ...
 
 set(gca, 'FontSize', 12);
 
-exportgraphics(gcf, 'figs/fig convergence.pdf', ...
+exportgraphics(gcf, projectPath('figs','fig convergence.pdf'), ...
     'ContentType','vector', 'BackgroundColor','none');
 
 %%
@@ -975,5 +979,5 @@ set(gca,'XGrid','on','YGrid','on',...
 % 子图 (b) 标签
 text(-0.02, -0.15, '(b)', 'Units','normalized', 'FontSize', 10, 'FontWeight','bold');
 
-exportgraphics(gcf, 'figs/fig sensitivity.pdf', ...
+exportgraphics(gcf, projectPath('figs','fig sensitivity.pdf'), ...
     'ContentType','vector', 'BackgroundColor','none');

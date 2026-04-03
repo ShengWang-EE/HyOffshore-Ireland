@@ -3,7 +3,9 @@ clear
 % this script will read-in and plot NetCDF data in MATLAB
 % Define data file. Add directory path if necessary.
 % file = 'MERRA2_100.instM_2d_asm_Nx.199001.nc4';
-file = 'MERRA2_400.tavg1_2d_flx_Nx.20220101.SUB.nc';
+weatherFile = projectPath('data','inputs','weather_samples','MERRA2_400.tavg1_2d_flx_Nx.20220101.SUB.nc');
+psseRawFile = projectPath('data','inputs','network','PSSERaw_from_Dutrain.raw');
+file = weatherFile;
 ncinfo(file);
 
 % Uncomment to display metadata information
@@ -35,7 +37,7 @@ ylabel('degrees latitude')
 runopf(PSSERaw_from_Dutrain);
 %%
 mpc1 = PSSERaw_from_Dutrain;
-[mpc, warnings] = psse2mpc('PSSERaw_from_Dutrain.raw');
+[mpc, warnings] = psse2mpc(psseRawFile);
 find(mpc.gen(:,1) == 776)
 %%
 k = 60;

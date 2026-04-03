@@ -1,17 +1,26 @@
 clear
 clc
 yalmip('clear')
-mpc.bus = table2array(readtable('Irish energy system data.xlsx','sheet','bus','range','A2:M1197'));
-mpc.gen = table2array(readtable('Irish energy system data.xlsx','sheet','gen','range','A2:U140'));
-mpc.branch = table2array(readtable('Irish energy system data.xlsx','sheet','branch','range','A2:M1369'));
-mpc.gencost = table2array(readtable('Irish energy system data.xlsx','sheet','gencost','range','A2:G140'));
-mpc.Gbus = table2array(readtable('Irish energy system data.xlsx','sheet','Gbus','range','A2:F145'));
-mpc.Gline = table2array(readtable('Irish energy system data.xlsx','sheet','Gline','range','A2:I145'));
-mpc.Gsou = table2array(readtable('Irish energy system data.xlsx','sheet','Gsou','range','A2:D3'));
-mpc.Gcost = table2array(readtable('Irish energy system data.xlsx','sheet','Gcost','range','A2:A3'));
-mpc.GEcon = table2array(readtable('Irish energy system data.xlsx','sheet','GEcon','range','A2:D14'));
-mpc.ptg = table2array(readtable('Irish energy system data.xlsx','sheet','ptg','range','A2:E8'));
-mpc.gentype = table2array(readtable('Irish energy system data.xlsx','sheet','gentype','range','A2:A140'));
+systemDataFile = projectPath('data','inputs','system','Irish energy system data.xlsx');
+windDataDir = projectPath('wind data');
+approvedAreaFile = projectPath('data','inputs','geospatial','offshore area (approved).shp');
+foreshoreAreaFile = projectPath('data','inputs','geospatial','offshore areas (early planning).shp');
+checkpointDir = projectPath('data','checkpoints');
+if ~exist(checkpointDir, 'dir')
+    mkdir(checkpointDir);
+end
+
+mpc.bus = table2array(readtable(systemDataFile,'sheet','bus','range','A2:M1197'));
+mpc.gen = table2array(readtable(systemDataFile,'sheet','gen','range','A2:U140'));
+mpc.branch = table2array(readtable(systemDataFile,'sheet','branch','range','A2:M1369'));
+mpc.gencost = table2array(readtable(systemDataFile,'sheet','gencost','range','A2:G140'));
+mpc.Gbus = table2array(readtable(systemDataFile,'sheet','Gbus','range','A2:F145'));
+mpc.Gline = table2array(readtable(systemDataFile,'sheet','Gline','range','A2:I145'));
+mpc.Gsou = table2array(readtable(systemDataFile,'sheet','Gsou','range','A2:D3'));
+mpc.Gcost = table2array(readtable(systemDataFile,'sheet','Gcost','range','A2:A3'));
+mpc.GEcon = table2array(readtable(systemDataFile,'sheet','GEcon','range','A2:D14'));
+mpc.ptg = table2array(readtable(systemDataFile,'sheet','ptg','range','A2:E8'));
+mpc.gentype = table2array(readtable(systemDataFile,'sheet','gentype','range','A2:A140'));
 mpc.version = '2';
 mpc.baseMVA = 100;
 
@@ -24,7 +33,7 @@ mpc0 = mpc;
 % 通过测试发现纯电力系统能够消纳东部海岸约5GW的风电
 %% wind power
 % load nc winf speed files
-fileNameList = dir('.\wind data\');
+fileNameList = dir(windDataDir);
 [windMatrix,numDays] = loadWindDataFromNC(fileNameList); % load wind data from nc file
 windMatrix.speed = sqrt(windMatrix.ULML.^2+windMatrix.VLML.^2);
 windMatrix.speedHist = reshape(windMatrix.speed,[size(windMatrix.speed,1)*size(windMatrix.speed,2),1]);
@@ -32,8 +41,8 @@ windMatrix.speedHist = reshape(windMatrix.speed,[size(windMatrix.speed,1)*size(w
 totalWindCapacity1st  = 5000; %MW
 nWindTurbineApproved = totalWindCapacity1st / windTurbine.ratedPower;
 % get the geographycal locations of OWFs
-OWFapprovedArea = shaperead('offshore area (approved).shp');
-OWFforeshoreArea = shaperead('offshore areas (early planning).shp');
+OWFapprovedArea = shaperead(approvedAreaFile);
+OWFforeshoreArea = shaperead(foreshoreAreaFile);
 nApproved = size(OWFapprovedArea,1);
 nForeshore = size(OWFforeshoreArea,1);
 approvedAreaTotal = 0;
@@ -70,11 +79,11 @@ for i = 1:nApproved
     OWFapprovedArea(i).nRow = abs(round( deg2km(OWFapprovedArea(i).BoundingBox(1,2) - OWFapprovedArea(i).BoundingBox(2,2)) ...
         * 1e3 / OWFapprovedArea(i).lengthSquare ));
 end
-save stop1.mat
+save(projectPath('data','checkpoints','stop1.mat'))
 %%
 clear
 clc
-load stop1.mat
+load(projectPath('data','checkpoints','stop1.mat'))
 % select a day
 day1 = daysact(datetime(2012,1,1), datetime(2022,12,1)); % typical day 2022-12-01
 dayBand = 15;
@@ -92,11 +101,11 @@ end
 resolution = 10; %m
 [windDecreaseFactorTotalDemo,gridCoordinate_new,dataPlot] = wakeEffectDemo(OWFapprovedArea(1),selectedWindData.ULML(1,1),selectedWindData.VLML(1,2),windTurbine,resolution);
 % plot3(dataPlot(:,1),dataPlot(:,2),dataPlot(:,3));
-save stop2.mat
+save(projectPath('data','checkpoints','stop2.mat'))
 %%
 clear
 clc
-load stop2.mat
+load(projectPath('data','checkpoints','stop2.mat'))
 % calculate wake effect for wind turbines
 windDecreaseFactorTotal = cell(size(selectedWindData.ULML,1),nApproved);
 for i = 1:nApproved
@@ -145,11 +154,11 @@ for i = 1:nApproved
     OWFgeneration0(:,i) = reshape(sum(sum(WTgeneration{i})),[size(windSiteData,1),1]);
 end
 
-save stop3.mat
+save(projectPath('data','checkpoints','stop3.mat'))
 %% scenatio 2, 20GW, mid term scenario
 clear
 clc
-load stop3.mat
+load(projectPath('data','checkpoints','stop3.mat'))
 
 % get statistics of OWF generation
 OWFgeneration96 = zeros(size(OWFgeneration0,1)*4,size(OWFgeneration0,2));
@@ -205,11 +214,11 @@ OWFgenStatistic24.errorRelativeStd = OWFgenStatistic24.errorStd ./ OWFgenStatist
 OWFgenStatistic24.errorMean_sum = mean(generationError_sum,2);
 OWFgenStatistic24.errorStd_sum = std(generationError_sum,[],2);
 OWFgenStatistic24.errorRelativeStd_sum = OWFgenStatistic24.errorStd_sum ./ OWFgenStatistic24.curve_sum;
-save stop4.mat
+save(projectPath('data','checkpoints','stop4.mat'))
 %% case 1: comparasion of solution methods --------------------------------
 clear
 clc
-load stop4.mat
+load(projectPath('data','checkpoints','stop4.mat'))
 
 OWFindexSet = find(mpc0.gentype==1);
 
@@ -222,7 +231,7 @@ OWFindexSet = find(mpc0.gentype==1);
 %% case 1
 clear
 clc
-load stop4.mat
+load(projectPath('data','checkpoints','stop4.mat'))
 
 gppIndexSet = mpc.GEcon(:,3);
 nOWF = size(find(mpc0.gentype==1));
@@ -234,8 +243,8 @@ totalOWFcapacity = 5000; % 5GW
 
 % 不能跑多时段的，不然求解太慢了。这次就先不考虑爬坡问题吧
 % wind and demand
-electricityDemandCurve = table2array(readtable('Irish energy system data.xlsx','sheet','loadCurve','range','B2:B97'));
-gasDemandFactor = table2array(readtable('Irish energy system data.xlsx','sheet','loadCurve','range','C2:C97'));
+electricityDemandCurve = table2array(readtable(projectPath('data','inputs','system','Irish energy system data.xlsx'),'sheet','loadCurve','range','B2:B97'));
+gasDemandFactor = table2array(readtable(projectPath('data','inputs','system','Irish energy system data.xlsx'),'sheet','loadCurve','range','C2:C97'));
 
 % mid term scenario, 20 GW, for validating uncertainty handling
 
@@ -283,12 +292,12 @@ for k = 192
         runopf_hge_robust(mpc1{counter},GEresults_base{counter},mu,sigma,epsilon);
 end
 
-save stop5.mat
+save(projectPath('data','checkpoints','stop5.mat'))
 %% case 2: run drcc for different scenarios
 clc
 clear
 yalmip('clear')
-load stop4.mat
+load(projectPath('data','checkpoints','stop4.mat'))
 
 
 nOWF = size(find(mpc0.gentype==1));
@@ -298,8 +307,8 @@ mpc0.gencost(OWFindexSet,[6:7]) = repmat(mpc0.gencost(5,[6:7]) / 10,[nOWF,1]);
 mpc0.ptg(:,5) = 999; % increase the capacity of PTGs
 
 % wind and demand
-electricityDemandCurve = table2array(readtable('Irish energy system data.xlsx','sheet','loadCurve','range','B2:B97'));
-gasDemandFactor = table2array(readtable('Irish energy system data.xlsx','sheet','loadCurve','range','C2:C97'));
+electricityDemandCurve = table2array(readtable(projectPath('data','inputs','system','Irish energy system data.xlsx'),'sheet','loadCurve','range','B2:B97'));
+gasDemandFactor = table2array(readtable(projectPath('data','inputs','system','Irish energy system data.xlsx'),'sheet','loadCurve','range','C2:C97'));
 
 
 % short-term
@@ -360,11 +369,11 @@ mu2 = OWFgenStatistic24.errorMean_sum ./ OWFgenStatistic24.curve_sum * totalOWFc
 sigma2 = OWFgenStatistic24.errorStd_sum ./ OWFgenStatistic24.curve_sum * totalOWFcapacity.midTerm / 5;
 mu3 = OWFgenStatistic24.errorMean_sum ./ OWFgenStatistic24.curve_sum * totalOWFcapacity.longTerm;
 sigma3 = OWFgenStatistic24.errorStd_sum ./ OWFgenStatistic24.curve_sum * totalOWFcapacity.longTerm / 5;
-save stop6.mat
+save(projectPath('data','checkpoints','stop6.mat'))
 %% deterministic, power system only
 clc
 clear
-load stop6.mat
+load(projectPath('data','checkpoints','stop6.mat'))
 counter = 0;
 for k = 1:24
     counter = counter + 1;
@@ -409,7 +418,7 @@ end
 %% run HGE drcc
 clc
 clear
-load stop6.mat
+load(projectPath('data','checkpoints','stop6.mat'))
 counter = 0;
 for k = 1:24
     counter = counter + 1;
@@ -451,12 +460,12 @@ for k = 1:24
     HGEdrccAccomadation.OWFaccomadationRate2_all = HGEdrccAccomadation.OWFgeneration2_sum./ HGEdrccAccomadation.OWFcapacity2_sum;
     HGEdrccAccomadation.OWFaccomadationRate3_all = HGEdrccAccomadation.OWFgeneration3_sum./ HGEdrccAccomadation.OWFcapacity3_sum;
 end
-save stop5.mat
+save(projectPath('data','checkpoints','stop5.mat'))
 %%
 clc
 clear
 yalmip('clear')
-load stop6.mat
+load(projectPath('data','checkpoints','stop6.mat'))
 % mean gas composition (得重新计算，放点ptg去西边和南边）
 counter = 0;
 for k = 1:24
@@ -540,7 +549,7 @@ save
 clc
 clear
 yalmip('clear')
-load stop6.mat
+load(projectPath('data','checkpoints','stop6.mat'))
 % mean gas composition (得重新计算，放点ptg去西边和南边）
 counter = 0;
 for k = 1:24

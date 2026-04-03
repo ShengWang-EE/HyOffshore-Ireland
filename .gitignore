@@ -1,2 +1,5 @@
 # Keep oversized local climate data out of GitHub pushes.
 MERRA2_400.tavg1_2d_flx_Nx.20230101.nc4
+
+# Keep regenerated checkpoints out of the working tree noise.
+data/checkpoints/stop*.mat

@@ -2,11 +2,14 @@ clear
 clc
 
 totalGasDemand = 24.7884; % 13th Dec 2023, for the hour 17:00 to 18:00, Mm3/day
+coordinateFile = projectPath('data','inputs','geospatial','list of coodinates.xlsx');
+irishPopulationFile = projectPath('data','inputs','demographics','irish population density 2020.csv');
+ukPopulationFile = projectPath('data','inputs','demographics','UK population density 2020.csv');
 
-coordinatesTable = readtable('list of coodinates.xlsx');
+coordinatesTable = readtable(projectPath('data','inputs','geospatial','list of coodinates.xlsx'));
 coordinates = table2array(coordinatesTable(:,3:4));
-irishPopulationTable = readtable('irish population density 2020.csv');
-UKPopulationTable = readtable('UK population density 2020.csv');
+irishPopulationTable = readtable(irishPopulationFile);
+UKPopulationTable = readtable(ukPopulationFile);
 irishPopulationDensity = table2array(irishPopulationTable);
 UKPopulationDensity = table2array(UKPopulationTable);
 populationDensity = [irishPopulationDensity; UKPopulationDensity];
@@ -35,10 +38,10 @@ gasDemand = demandFactor' * totalGasDemand;
 clear
 clc
 
-coordinatesTable = readtable('list of coodinates.xlsx');
+coordinatesTable = readtable(coordinateFile);
 coordinates = table2array(coordinatesTable(:,3:4));
 
-connectionTable = readtable('Irish 144 gas network data.xlsx','sheet',6);
+connectionTable = readtable(projectPath('data','inputs','system','Irish 144 gas network data.xlsx'),'sheet',6);
 connection = table2array(connectionTable(:,1:2));
 curveFactor = 1.0;
 for i = 1:144 % number of pipeline
